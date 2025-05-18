@@ -2,34 +2,14 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, FlatList, Image, TouchableOpacity } from 'react-native';
 import { useTheme } from '../context/ThemeContext';
 import { Ionicons } from '@expo/vector-icons';
-import { Pet } from '../types';
 import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-
-const mockPets: Pet[] = [
-  {
-    id: '1',
-    name: 'Buddy',
-    breed: 'Golden Retriever',
-    age: '2 years',
-    description: 'Friendly and playful. Loves kids and other dogs.',
-    status: 'available',
-    image: require('../../assets/dog1.jpg'),
-  },
-  {
-    id: '2',
-    name: 'Mittens',
-    breed: 'Domestic Shorthair',
-    age: '1 year',
-    description: 'Gentle and affectionate. Great lap cat.',
-    status: 'available',
-    image: require('../../assets/cat1.jpg'),
-  },
-];
+import { usePets } from '../context/PetContext';
 
 const SavedPetsScreen = () => {
   const { theme } = useTheme();
   const navigation = useNavigation();
+  const { pets } = usePets(); // Get pets from context
   const [savedPetIds, setSavedPetIds] = useState<string[]>([]);
   const [savedPets, setSavedPets] = useState<Pet[]>([]);
 
@@ -40,8 +20,8 @@ const SavedPetsScreen = () => {
         if (saved) {
           const savedIds = JSON.parse(saved);
           setSavedPetIds(savedIds);
-          // Filter mock pets to only show saved ones
-          const filteredPets = mockPets.filter(pet => savedIds.includes(pet.id));
+          // Filter pets from context to only show saved ones
+          const filteredPets = pets.filter(pet => savedIds.includes(pet.id));
           setSavedPets(filteredPets);
         }
       } catch (error) {
@@ -49,13 +29,13 @@ const SavedPetsScreen = () => {
       }
     };
     loadSavedPets();
-  }, []);
+  }, [pets]); // Add pets as dependency to update when pets change
 
   const toggleSavePet = async (petId: string) => {
     try {
       const updatedSavedPets = savedPetIds.filter(id => id !== petId);
       setSavedPetIds(updatedSavedPets);
-      setSavedPets(savedPets.filter(pet => pet.id !== petId));
+      setSavedPets(prev => prev.filter(pet => pet.id !== petId));
       await AsyncStorage.setItem('savedPets', JSON.stringify(updatedSavedPets));
     } catch (error) {
       console.error('Error removing saved pet:', error);
@@ -67,7 +47,11 @@ const SavedPetsScreen = () => {
       style={[styles.card, { backgroundColor: theme.colors.card }]}
       onPress={() => navigation.navigate('PetDetail', { pet: item })}
     >
-      <Image source={item.image} style={styles.petImage} />
+      <Image 
+        source={item.image} 
+        style={styles.petImage} 
+        defaultSource={require('../../assets/placeholder.jpg')}
+      />
       <View style={styles.petInfo}>
         <Text style={[styles.petName, { color: theme.colors.primary }]}>{item.name}</Text>
         <Text style={[styles.petDetails, { color: theme.colors.text }]}>
@@ -127,6 +111,7 @@ const styles = StyleSheet.create({
   petImage: {
     width: '100%',
     height: 150,
+    backgroundColor: '#f0f0f0', // Fallback background
   },
   petInfo: {
     padding: 16,

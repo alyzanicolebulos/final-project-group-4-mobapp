@@ -1,92 +1,39 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { View, StyleSheet, FlatList, TouchableOpacity, Text, Alert } from 'react-native';
 import { useTheme } from '../../context/ThemeContext';
 import { Ionicons } from '@expo/vector-icons';
-import { Pet } from '../../types';
+import { usePets } from '../../context/PetContext';
 import { useNavigation } from '@react-navigation/native';
 
 const ManagePetsScreen = () => {
   const { theme } = useTheme();
+  const { pets, deletePet } = usePets();
   const navigation = useNavigation();
-  const [pets, setPets] = useState<Pet[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    // In a real app, this would fetch from an API
-    const loadPets = async () => {
-      try {
-        // Simulate API call
-        await new Promise(resolve => setTimeout(resolve, 800));
-        const mockPets: Pet[] = [
-          {
-            id: '1',
-            name: 'Buddy',
-            breed: 'Golden Retriever',
-            age: '2 years',
-            description: 'Friendly and playful. Loves kids and other dogs.',
-            status: 'available',
-            image: require('../../../assets/dog1.jpg'),
-          },
-          {
-            id: '2',
-            name: 'Mittens',
-            breed: 'Domestic Shorthair',
-            age: '1 year',
-            description: 'Gentle and affectionate. Great lap cat.',
-            status: 'available',
-            image: require('../../../assets/cat1.jpg'),
-          },
-        ];
-        setPets(mockPets);
-      } catch (error) {
-        Alert.alert('Error', 'Failed to load pets');
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    loadPets();
-  }, []);
-
-  const handleDeletePet = (petId: string) => {
+  const handleDelete = (id: string) => {
     Alert.alert(
       'Delete Pet',
       'Are you sure you want to delete this pet?',
       [
-        {
-          text: 'Cancel',
-          style: 'cancel',
-        },
-        {
-          text: 'Delete',
-          style: 'destructive',
-          onPress: () => {
-            setPets(pets.filter(pet => pet.id !== petId));
-          },
-        },
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Delete', style: 'destructive', onPress: () => deletePet(id) }
       ]
     );
   };
 
-  const renderPetItem = ({ item }: { item: Pet }) => (
-    <View style={[styles.petCard, { backgroundColor: theme.colors.card }]}>
-      <View style={styles.petInfo}>
-        <Text style={[styles.petName, { color: theme.colors.primary }]}>{item.name}</Text>
-        <Text style={[styles.petDetails, { color: theme.colors.text }]}>
+  const renderItem = ({ item }) => (
+    <View style={[styles.card, { backgroundColor: theme.colors.card }]}>
+      <View style={styles.infoContainer}>
+        <Text style={[styles.name, { color: theme.colors.primary }]}>{item.name}</Text>
+        <Text style={[styles.details, { color: theme.colors.text }]}>
           {item.breed} • {item.age} • {item.status}
         </Text>
       </View>
       <View style={styles.actions}>
-        <TouchableOpacity
-          onPress={() => navigation.navigate('PetForm', { pet: item })}
-          style={styles.actionButton}
-        >
+        <TouchableOpacity onPress={() => navigation.navigate('PetForm', { pet: item })}>
           <Ionicons name="create" size={24} color={theme.colors.primary} />
         </TouchableOpacity>
-        <TouchableOpacity
-          onPress={() => handleDeletePet(item.id)}
-          style={styles.actionButton}
-        >
+        <TouchableOpacity onPress={() => handleDelete(item.id)}>
           <Ionicons name="trash" size={24} color={theme.colors.error} />
         </TouchableOpacity>
       </View>
@@ -105,25 +52,19 @@ const ManagePetsScreen = () => {
         </TouchableOpacity>
       </View>
 
-      {isLoading ? (
-        <View style={styles.loadingContainer}>
-          <Text style={[styles.loadingText, { color: theme.colors.text }]}>Loading pets...</Text>
-        </View>
-      ) : (
-        <FlatList
-          data={pets}
-          renderItem={renderPetItem}
-          keyExtractor={item => item.id}
-          contentContainerStyle={styles.listContent}
-          ListEmptyComponent={
-            <View style={styles.emptyContainer}>
-              <Text style={[styles.emptyText, { color: theme.colors.text }]}>
-                No pets found. Add a new pet to get started.
-              </Text>
-            </View>
-          }
-        />
-      )}
+      <FlatList
+        data={pets}
+        renderItem={renderItem}
+        keyExtractor={item => item.id}
+        contentContainerStyle={styles.listContent}
+        ListEmptyComponent={
+          <View style={styles.emptyContainer}>
+            <Text style={[styles.emptyText, { color: theme.colors.text }]}>
+              No pets available. Add a new pet to get started.
+            </Text>
+          </View>
+        }
+      />
     </View>
   );
 };
@@ -154,7 +95,7 @@ const styles = StyleSheet.create({
   listContent: {
     paddingBottom: 20,
   },
-  petCard: {
+  card: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
@@ -167,30 +108,20 @@ const styles = StyleSheet.create({
     shadowRadius: 2,
     elevation: 2,
   },
-  petInfo: {
+  infoContainer: {
     flex: 1,
   },
-  petName: {
+  name: {
     fontSize: 18,
     fontWeight: 'bold',
     marginBottom: 4,
   },
-  petDetails: {
+  details: {
     fontSize: 14,
   },
   actions: {
     flexDirection: 'row',
-  },
-  actionButton: {
-    marginLeft: 16,
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  loadingText: {
-    fontSize: 16,
+    gap: 16,
   },
   emptyContainer: {
     flex: 1,

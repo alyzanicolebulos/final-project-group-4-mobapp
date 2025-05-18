@@ -1,11 +1,5 @@
 import React, { createContext, useContext, useState } from 'react';
-
-interface User {
-  id: string;
-  email: string;
-  name: string;
-  role: 'admin' | 'user';
-}
+import { User } from '../types/index';
 
 interface AuthContextType {
   user: User | null;
@@ -22,14 +16,13 @@ const AuthContext = createContext<AuthContextType>({
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
 
-  // Simple mock authentication
   const login = async (email: string, password: string): Promise<boolean> => {
-    // In a real app, this would be an API call
-    if (email === 'admin@parc.org' && password === 'admin123') {
+    // Simple mock authentication - replace with real auth in production
+    if (email === 'admin@adoptpaw.com' && password === 'admin123') {
       setUser({
         id: '1',
         email,
-        name: 'PARC Admin',
+        name: 'Admin User',
         role: 'admin',
       });
       return true;

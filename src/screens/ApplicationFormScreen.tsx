@@ -5,7 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { Formik } from 'formik';
 import * as Yup from 'yup';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
-import { RootStackParamList } from '../types';
+import { RootStackParamList } from '../types/index';
 
 const ApplicationFormScreen = () => {
   const { theme } = useTheme();
